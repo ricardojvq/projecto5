@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<noticias>
+	<noticia>
+	    <titulo>Titulo da Noticia</titulo>
+	    <data>2015-06-01</data>
+	    <corpo>Corpo da Noticia</corpo>
+	    <url>http://wwww.exemplo.com</url>
+	</noticia>
+	<noticia>
+	    <titulo>Titulo da outra Noticia</titulo>
+	    <data>2015-06-02</data>
+	    <corpo>Corpo da outra Noticia</corpo>
+	    <url>http://wwww.exemplo2.com</url>
+	</noticia>
+</noticias>
