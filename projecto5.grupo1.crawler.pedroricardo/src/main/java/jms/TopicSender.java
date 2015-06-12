@@ -23,6 +23,7 @@ public class TopicSender {
 
 
 		Properties props = new Properties();
+
 		props.setProperty("java.naming.factory.initial","org.jboss.naming.remote.client.InitialContextFactory");
 		props.setProperty("java.naming.provider.url","http-remoting://127.0.0.1:8080");
 		props.setProperty("java.naming.security.principal", "user");
@@ -43,7 +44,7 @@ public class TopicSender {
 		TextMessage msg = session.createTextMessage(xml2String);
 
 		sender.send(msg);
-
+		System.out.println("Message sent!");
 		sender.close();
 		session.close();
 		jmsConnection.close();

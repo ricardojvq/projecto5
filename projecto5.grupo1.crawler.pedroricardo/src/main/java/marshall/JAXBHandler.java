@@ -3,7 +3,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -26,7 +25,7 @@ public class JAXBHandler {
         Marshaller m = context.createMarshaller();
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         m.setProperty("com.sun.xml.internal.bind.xmlHeaders", 
-                "<?xml-stylesheet type=\"text/xsl\" href=\"jornal.xsl\" ?>\n");
+                "<?xml-stylesheet type=\"text/xsl\" href=\"newspaper.xsl\" ?>\n");
         m.marshal(new Noticias(news), writer);
         writer.close();
     }
