@@ -1,8 +1,8 @@
 package marshall;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -20,7 +20,7 @@ public class JAXBHandler {
             throws IOException, JAXBException {
         JAXBContext context;
         BufferedWriter writer = null;
-        writer = new BufferedWriter(new FileWriter(selectedFile));
+        writer = new BufferedWriter(new PrintWriter(selectedFile,"utf-8"));
         context = JAXBContext.newInstance(Noticias.class);
         Marshaller m = context.createMarshaller();
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
