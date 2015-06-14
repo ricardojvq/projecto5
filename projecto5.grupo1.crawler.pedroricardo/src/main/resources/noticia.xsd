@@ -12,13 +12,17 @@
       <xs:sequence>
         <xs:element ref="titulo"/>
         <xs:element ref="data"/>
+        <xs:element ref="autor"/>
+        <xs:element ref="categoria"/>
         <xs:element ref="corpo"/>
         <xs:element ref="url"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
   <xs:element name="titulo" type="xs:string"/>
-  <xs:element name="data" type="xs:string"/>
+  <xs:element name="data" type="xs:NMTOKEN"/>
+  <xs:element name="autor" type="xs:string"/>
+  <xs:element name="categoria" type="xs:string"/>
   <xs:element name="corpo" type="xs:string"/>
   <xs:element name="url" type="xs:anyURI"/>
 </xs:schema>

@@ -36,8 +36,12 @@ public class Crawler {
 				Document newsHTML = c.get();
 				Noticia n = new Noticia();
 				n.setTitulo(e.text());
-				n.setData("data");
 				n.setUrl(cnnPrefix + e.attr("href"));
+				n.setAutor(newsHTML.select("span.metadata__byline__author").text());
+				n.setData(e.attr("href").substring(1, 11));
+				String aux = e.attr("href").substring(11, 20);
+				String[] categ = aux.split("/");
+				n.setCategoria(categ[1]);
 				Elements newsEl = newsHTML.select("p.zn-body__paragraph");
 				String body = "";
 				for (Element el:newsEl) {
