@@ -1,6 +1,9 @@
 package projecto5.grupo1.html.pedroricardo.xmlsubscriber;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +38,8 @@ public class XMLStats {
 
 		props.setProperty("java.naming.factory.initial","org.jboss.naming.remote.client.InitialContextFactory");
 		props.setProperty("java.naming.provider.url","http-remoting://127.0.0.1:8080");
+		props.setProperty("java.naming.security.principal", "user");
+		props.setProperty("java.naming.security.credentials", "qwerty123");
 
 		InitialContext ic = new InitialContext(props);
 
@@ -43,18 +48,18 @@ public class XMLStats {
 		Topic topic = (Topic) ic.lookup("jms/topic/noticias");
 
 		Connection connection = factory.createConnection("user","qwerty123");
-		connection.setClientID("user3");
+		connection.setClientID("user5");
 
 		Session session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
-
+		
 		MessageConsumer receiver = session.createDurableConsumer(topic, "user");
-
+		
 		connection.start();
-
+		
 		TextMessage msg = (TextMessage) receiver.receive();
 		String msg2XML = msg.getText();
 		Document file = loadXMLFromString(msg2XML);
-
+		
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
 		Result output = new StreamResult(new File("newsoutput.xml"));
 		Source input = new DOMSource(file);
@@ -69,8 +74,26 @@ public class XMLStats {
 
 		if (doc.hasChildNodes()) {
 
-			printNote(doc.getChildNodes());
-
+			Map<String,Integer> resumo = printNote(doc.getChildNodes());
+			String resumo2file = "Resumo das notícias: \n";
+			for (String s:resumo.keySet()) {
+				resumo2file += s + " - "+resumo.get(s) + " notícia(s)\n";
+			}
+			resumo2file += "----------------\n\n";
+			try {
+				File statsFile = new File("stats.txt");
+				if (!statsFile.exists()) {
+					statsFile.createNewFile();
+				}
+				
+				FileWriter fw = new FileWriter(statsFile, true);
+				BufferedWriter bw = new BufferedWriter(fw);
+				bw.write(resumo2file);
+				bw.close();
+				fw.close();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+			}
 		}
 
 		receiver.close();
@@ -89,7 +112,7 @@ public class XMLStats {
 		return builder.parse(is);
 	}
 
-	private static void printNote(NodeList nodeList) {
+	private static Map<String,Integer> printNote(NodeList nodeList) {
 		Map<String, Integer> cat = new HashMap<String, Integer>();
 		for (int count = 0; count < nodeList.getLength(); count++) {
 
@@ -104,8 +127,14 @@ public class XMLStats {
 						NodeList nodeMap = tNode.getChildNodes();
 						for (int j = 0; j < nodeMap.getLength(); j++) {
 							if (nodeMap.item(j).getNodeName().equalsIgnoreCase("categoria")) {
-
-								System.out.println(nodeMap.item(j).getTextContent());
+								if (cat.containsKey(nodeMap.item(j).getTextContent())) {
+									int addOne = cat.get(nodeMap.item(j).getTextContent()) + 1;
+									cat.put(nodeMap.item(j).getTextContent(), addOne);
+								} else {
+									String catgr = nodeMap.item(j).getTextContent();
+									int c = 1;
+									cat.put(catgr, c);
+								}
 							}
 						}
 					}
@@ -113,7 +142,7 @@ public class XMLStats {
 				}
 			}
 		}
-
+		return cat;
 	}
 
 }
