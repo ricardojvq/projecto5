@@ -3,17 +3,23 @@
 	<noticia>
 	    <titulo>Titulo da Noticia</titulo>
 	    <data>2015-06-01</data>
+	    <hora>12:00</hora>
 	    <autor>Autor</autor>
 	    <categoria>Categoria</categoria>
 	    <corpo>Corpo da Noticia</corpo>
+	    <imagens>http://www.exemplo.com/imagem.jpg</imagens>
+	    <videos>http://www.exemplo.com/video.mp4</videos>
 	    <url>http://wwww.exemplo.com</url>
 	</noticia>
 	<noticia>
 	    <titulo>Titulo da outra Noticia</titulo>
 	    <data>2015-06-02</data>
+	    <hora>18:00</hora>
 	   	<autor>Outro Autor</autor>
 	    <categoria>Outra Categoria</categoria>
 	    <corpo>Corpo da outra Noticia</corpo>
+	    <imagens>http://www.exemplo.com/imagem.jpg</imagens>
+	    <videos>http://www.exemplo.com/video.mp4</videos>
 	    <url>http://wwww.exemplo2.com</url>
 	</noticia>
 </noticias>

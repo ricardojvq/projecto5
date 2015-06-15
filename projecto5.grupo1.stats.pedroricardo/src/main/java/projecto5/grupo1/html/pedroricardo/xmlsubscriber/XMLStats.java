@@ -5,12 +5,18 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
+import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
@@ -25,8 +31,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -51,15 +57,26 @@ public class XMLStats {
 		connection.setClientID("user5");
 
 		Session session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
-		
+
 		MessageConsumer receiver = session.createDurableConsumer(topic, "user");
-		
+		TextMessage msg = null;
 		connection.start();
-		
-		TextMessage msg = (TextMessage) receiver.receive();
+		while (true) {
+			Message m = receiver.receive(1000);
+			if (m != null) {
+				if (m instanceof TextMessage) {
+					msg = (TextMessage) m;
+				} else {
+					break;
+				}
+			} else {
+				break;
+			}
+		}
+
 		String msg2XML = msg.getText();
 		Document file = loadXMLFromString(msg2XML);
-		
+
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
 		Result output = new StreamResult(new File("newsoutput.xml"));
 		Source input = new DOMSource(file);
@@ -77,15 +94,17 @@ public class XMLStats {
 			Map<String,Integer> resumo = printNote(doc.getChildNodes());
 			String resumo2file = "Resumo das notícias: \n";
 			for (String s:resumo.keySet()) {
-				resumo2file += s + " - "+resumo.get(s) + " notícia(s)\n";
+				if (!s.equalsIgnoreCase("excluidas")) {
+					resumo2file += s + " - "+resumo.get(s) + " notícia(s)\n";
+				}
 			}
-			resumo2file += "----------------\n\n";
+			resumo2file += "\n\nNotícias excluídas (mais de 12 horas): "+resumo.get("excluidas")+"\n\n----------------\n\n";
 			try {
 				File statsFile = new File("stats.txt");
 				if (!statsFile.exists()) {
 					statsFile.createNewFile();
 				}
-				
+
 				FileWriter fw = new FileWriter(statsFile, true);
 				BufferedWriter bw = new BufferedWriter(fw);
 				bw.write(resumo2file);
@@ -112,21 +131,35 @@ public class XMLStats {
 		return builder.parse(is);
 	}
 
-	private static Map<String,Integer> printNote(NodeList nodeList) {
+	private static Map<String,Integer> printNote(NodeList nodeList) throws DOMException, ParseException {
+		int countOlderThan12 = 0;
 		Map<String, Integer> cat = new HashMap<String, Integer>();
 		for (int count = 0; count < nodeList.getLength(); count++) {
 
 			Node tempNode = nodeList.item(count);
-			
+
 			if (tempNode.hasChildNodes()) {
 				NodeList list2 = tempNode.getChildNodes();
-				
+
 				for (int i = 0; i < list2.getLength(); i++) {
 					Node tNode = list2.item(i);
 					if (tNode.hasChildNodes()) {
 						NodeList nodeMap = tNode.getChildNodes();
+						String hora = "";
+						String data = "";
+						boolean later = false;
 						for (int j = 0; j < nodeMap.getLength(); j++) {
-							if (nodeMap.item(j).getNodeName().equalsIgnoreCase("categoria")) {
+							if (nodeMap.item(j).getNodeName().equalsIgnoreCase("data")) {
+								data = nodeMap.item(j).getTextContent();
+							}
+							if (nodeMap.item(j).getNodeName().equalsIgnoreCase("hora")) {
+								later = laterThan12(data,nodeMap.item(j).getTextContent());
+								if (later) {
+									countOlderThan12++;
+									cat.put("excluidas",countOlderThan12);
+								}
+							}
+							if (nodeMap.item(j).getNodeName().equalsIgnoreCase("categoria") && !later) {
 								if (cat.containsKey(nodeMap.item(j).getTextContent())) {
 									int addOne = cat.get(nodeMap.item(j).getTextContent()) + 1;
 									cat.put(nodeMap.item(j).getTextContent(), addOne);
@@ -138,11 +171,23 @@ public class XMLStats {
 							}
 						}
 					}
-					
+
 				}
 			}
 		}
 		return cat;
+	}
+
+	private static boolean laterThan12(String data, String hora) throws ParseException {
+		boolean later = false;
+		DateFormat df = new SimpleDateFormat("HH:mm");
+		String dataHora = data+" "+hora;
+		Date publishTime = new SimpleDateFormat("yyyy/MM/dd HH:mm").parse(dataHora);
+		Date currentTime = Calendar.getInstance().getTime();
+		long difInMilis = currentTime.getTime() - publishTime.getTime();
+		long differenceInHours = (difInMilis) / 1000L / 60L / 60L;
+		if (differenceInHours > 12) later = true;
+		return later;
 	}
 
 }

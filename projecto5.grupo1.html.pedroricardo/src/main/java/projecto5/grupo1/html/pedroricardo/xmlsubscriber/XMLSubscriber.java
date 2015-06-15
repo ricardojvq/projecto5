@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
+import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
@@ -48,7 +49,19 @@ public class XMLSubscriber {
 		
 		connection.start();
 		
-		TextMessage msg = (TextMessage) receiver.receive();
+		TextMessage msg = null;
+		while (true) {
+			Message m = receiver.receive(1000);
+			if (m != null) {
+				if (m instanceof TextMessage) {
+					msg = (TextMessage) m;
+				} else {
+					break;
+				}
+			} else {
+				break;
+			}
+		}
 		String msg2XML = msg.getText();
 		Document file = loadXMLFromString(msg2XML);
 		
