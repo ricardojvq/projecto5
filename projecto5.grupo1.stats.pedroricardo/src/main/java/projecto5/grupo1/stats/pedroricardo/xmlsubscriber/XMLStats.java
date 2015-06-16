@@ -1,4 +1,4 @@
-package projecto5.grupo1.html.pedroricardo.xmlsubscriber;
+package projecto5.grupo1.stats.pedroricardo.xmlsubscriber;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,9 +13,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
+import javax.jms.InvalidClientIDException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
@@ -37,6 +39,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import projecto5.grupo1.stats.pedroricardo.validator.XMLValid;
+
 public class XMLStats {
 
 	public static void main(String[] args) throws Exception {
@@ -54,7 +58,13 @@ public class XMLStats {
 		Topic topic = (Topic) ic.lookup("jms/topic/noticias");
 
 		Connection connection = factory.createConnection("user","qwerty123");
-		connection.setClientID("user5");
+		try {
+			connection.setClientID("user5");
+		} catch (InvalidClientIDException ice) {
+			Random rd = new Random();
+			int r = 100 * rd.nextInt();
+			connection.setClientID("user"+r);
+		}
 
 		Session session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
 
@@ -81,8 +91,10 @@ public class XMLStats {
 		Result output = new StreamResult(new File("newsoutput.xml"));
 		Source input = new DOMSource(file);
 		transformer.transform(input, output);
-
 		File newsOP = new File("newsoutput.xml");
+		
+		XMLValid validator = new XMLValid();
+		validator.validateXML(newsOP);
 
 		DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
 				.newDocumentBuilder();
@@ -92,13 +104,14 @@ public class XMLStats {
 		if (doc.hasChildNodes()) {
 
 			Map<String,Integer> resumo = printNote(doc.getChildNodes());
-			String resumo2file = "Resumo das notícias: \n";
+			SimpleDateFormat df = new SimpleDateFormat("(dd/MM/yyyy @ HH:mm)");
+			String resumo2file = "\n\n----------------\n\n"+"Resumo das notícias: "+ df.format(new Date()) +"\n\n";
 			for (String s:resumo.keySet()) {
 				if (!s.equalsIgnoreCase("excluidas")) {
-					resumo2file += s + " - "+resumo.get(s) + " notícia(s)\n";
+					resumo2file += s.substring(0, 1).toUpperCase() + s.substring(1) + " - "+resumo.get(s) + " notícia(s)\n";
 				}
 			}
-			resumo2file += "\n\nNotícias excluídas (mais de 12 horas): "+resumo.get("excluidas")+"\n\n----------------\n\n";
+			resumo2file += "\n\nNotícias excluídas (mais de 12 horas): "+resumo.get("excluidas");
 			try {
 				File statsFile = new File("stats.txt");
 				if (!statsFile.exists()) {

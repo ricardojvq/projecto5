@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified">
+	<xs:element name="noticias">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element maxOccurs="unbounded" ref="noticia" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="noticia">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="titulo" />
+				<xs:element ref="data" />
+				<xs:element ref="hora" />
+				<xs:element ref="autor" />
+				<xs:element ref="categoria" />
+				<xs:element ref="corpo" />
+				<xs:element ref="imagens" />
+				<xs:element ref="videos" />
+				<xs:element ref="url" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="titulo" type="xs:string" />
+	<xs:element name="data" type="xs:string" />
+	<xs:element name="hora" type="xs:string" />
+	<xs:element name="autor" type="xs:string" />
+	<xs:element name="categoria" type="xs:string" />
+	<xs:element name="corpo">
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:minLength value="1" />
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+	<xs:element name="imagens" type="xs:anyURI" />
+	<xs:element name="videos" type="xs:anyURI" />
+	<xs:element name="url" type="xs:anyURI" />
+</xs:schema>

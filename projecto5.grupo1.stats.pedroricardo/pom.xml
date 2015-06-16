@@ -32,7 +32,7 @@
 					<!-- will main class to MANIFEST.MF -->
 					<archive>
 						<manifest>
-							<mainClass>projecto5.grupo1.html.pedroricardo.xmlsubscriber.XMLStats</mainClass>
+							<mainClass>projecto5.grupo1.stats.pedroricardo.xmlsubscriber.XMLStats</mainClass>
 						</manifest>
 					</archive>
 					<!-- will assembly the exploded dependencies within our uber jar -->
