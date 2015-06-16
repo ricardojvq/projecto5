@@ -74,28 +74,38 @@ public class XMLSubscriber {
 				break;
 			}
 		}
+		if (msg != null) {
 		String msg2XML = msg.getText();
 		Document file = loadXMLFromString(msg2XML);
-		
+		String s = XMLSubscriber.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		String[] temps = s.split("/");
+		String finalPath = "";
+		String rootPath = "";
+		for (int i = 0; i < temps.length-2; i++) {
+			rootPath += temps[i] + "/";
+		}
+		finalPath = rootPath + "target/";
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		Path p = Paths.get("src/main/resources/newsoutput.xml");
-		Result output = new StreamResult(p.toFile());
+		File newFile = new File(finalPath+"newsoutput.xml");
+		Result output = new StreamResult(newFile);
 		Source input = new DOMSource(file);
 		transformer.transform(input, output);
 		XMLValid validator = new XMLValid();
-		validator.validateXML(p.toFile());
+		validator.validateXML(newFile);
 		
 		// HTML creation
-		Path p1 = Paths.get("src/main/resources/newspaper.xsl");
+		String xslPath = rootPath+"src/main/resources/newspaper.xsl";
+		File xslFile = new File(xslPath);
 		TransformerFactory tf = TransformerFactory.newInstance();
-		Transformer tr = tf.newTransformer(new StreamSource(p1.toFile()));
-		output = new StreamResult(new File("noticias.html"));
+		Transformer tr = tf.newTransformer(new StreamSource(xslFile));
+		output = new StreamResult(new File(finalPath+"noticias.html"));
 		tr.transform(input, output);
 		receiver.close();
 		session.close();
 		connection.close();
 		
 		System.out.println("Message Received");
+		} else System.out.println("No messages to receive.");
 		
 
 	}

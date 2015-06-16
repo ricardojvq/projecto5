@@ -13,7 +13,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import utils.ProgressBar;
 
 public class Crawler {
@@ -27,7 +26,7 @@ public class Crawler {
 		Elements headlines = html.select("h3.cd__headline > a[href]");
 		Noticias newsAgg = new Noticias();
 		int count = 0;
-		System.out.println("A carregar notícias...");
+		System.out.println("Fetching the News...");
 		for (Element e:headlines) {
 			// Saltar se não for notícia (link começar por "2015/06/08"
 			if (e.attr("href").startsWith("/2015") && !e.attr("href").contains("/gallery/") && (e.attr("href").contains("/us/") || e.attr("href").contains("/china/") || e.attr("href").contains("/asia/") || e.attr("href").contains("/middle-east/") || e.attr("href").contains("/africa/") || e.attr("href").contains("/europe/") || e.attr("href").contains("/americas/"))) {
@@ -64,7 +63,15 @@ public class Crawler {
 			bar.update(count, tamanhototal);
 			count++;
 		}
-		File xmlFile = new File("news.xml");
+		String s = Crawler.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		String[] temps = s.split("/");
+		String targetPath = "";
+		String rootPath = "";
+		for (int i = 0; i < temps.length-2; i++) {
+			rootPath += temps[i] + "/";
+		}
+		targetPath = rootPath + "target/";
+		File xmlFile = new File(targetPath+"news.xml");
 		try {
 			JAXBHandler.marshal(newsAgg.getNoticia(), xmlFile);
 		} catch (JAXBException e1) {
@@ -72,7 +79,7 @@ public class Crawler {
 			e1.printStackTrace();
 		}
 
-		return XMLConverter.convertXMLFileToString("news.xml");
+		return XMLConverter.convertXMLFileToString(xmlFile.getAbsolutePath());
 	}
 
 }

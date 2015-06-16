@@ -38,7 +38,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
 import projecto5.grupo1.stats.pedroricardo.validator.XMLValid;
 
 public class XMLStats {
@@ -83,15 +82,25 @@ public class XMLStats {
 				break;
 			}
 		}
-
+		if (msg != null) {
 		String msg2XML = msg.getText();
 		Document file = loadXMLFromString(msg2XML);
 
+		String s = XMLStats.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+		String[] temps = s.split("/");
+		String targetPath = "";
+		String rootPath = "";
+		for (int i = 0; i < temps.length-2; i++) {
+			rootPath += temps[i] + "/";
+		}
+		targetPath = rootPath + "target/";
+		
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		Result output = new StreamResult(new File("newsoutput.xml"));
+		File newsXML = new File(targetPath+"newsoutput.xml");
+		Result output = new StreamResult(newsXML);
 		Source input = new DOMSource(file);
 		transformer.transform(input, output);
-		File newsOP = new File("newsoutput.xml");
+		File newsOP = newsXML;
 		
 		XMLValid validator = new XMLValid();
 		validator.validateXML(newsOP);
@@ -106,14 +115,14 @@ public class XMLStats {
 			Map<String,Integer> resumo = printNote(doc.getChildNodes());
 			SimpleDateFormat df = new SimpleDateFormat("(dd/MM/yyyy @ HH:mm)");
 			String resumo2file = "\n\n----------------\n\n"+"Resumo das notícias: "+ df.format(new Date()) +"\n\n";
-			for (String s:resumo.keySet()) {
-				if (!s.equalsIgnoreCase("excluidas")) {
-					resumo2file += s.substring(0, 1).toUpperCase() + s.substring(1) + " - "+resumo.get(s) + " notícia(s)\n";
+			for (String str:resumo.keySet()) {
+				if (!str.equalsIgnoreCase("excluidas")) {
+					resumo2file += str.substring(0, 1).toUpperCase() + str.substring(1) + " - "+resumo.get(str) + " notícia(s)\n";
 				}
 			}
 			resumo2file += "\n\nNotícias excluídas (mais de 12 horas): "+resumo.get("excluidas");
 			try {
-				File statsFile = new File("stats.txt");
+				File statsFile = new File(targetPath+"stats.txt");
 				if (!statsFile.exists()) {
 					statsFile.createNewFile();
 				}
@@ -133,6 +142,7 @@ public class XMLStats {
 		connection.close();
 
 		System.out.println("Message Received");
+		} else System.out.println("No messages to receive.");
 
 
 	}
