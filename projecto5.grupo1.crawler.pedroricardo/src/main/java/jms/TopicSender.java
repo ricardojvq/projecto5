@@ -64,6 +64,7 @@ public class TopicSender {
 				byte[] savedNews = Files.readAllBytes(f.toPath());
 				String newsMsg = new String(savedNews,"UTF-8");
 				TextMessage m = session.createTextMessage(newsMsg);
+				sender.send(m);
 				sender.close();
 				session.close();
 				jmsConnection.close();

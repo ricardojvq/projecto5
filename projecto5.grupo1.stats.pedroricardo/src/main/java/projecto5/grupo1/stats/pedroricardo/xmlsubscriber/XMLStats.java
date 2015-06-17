@@ -23,6 +23,7 @@ import javax.jms.MessageConsumer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
+import javax.naming.CommunicationException;
 import javax.naming.InitialContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,6 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
 import projecto5.grupo1.stats.pedroricardo.validator.XMLValid;
 
 public class XMLStats {
@@ -52,97 +54,101 @@ public class XMLStats {
 
 		InitialContext ic = new InitialContext(props);
 
-		ConnectionFactory factory = (ConnectionFactory) ic.lookup("jms/RemoteConnectionFactory");
-
-		Topic topic = (Topic) ic.lookup("jms/topic/noticias");
-
-		Connection connection = factory.createConnection("user","qwerty123");
+		
 		try {
-			connection.setClientID("user5");
-		} catch (InvalidClientIDException ice) {
-			Random rd = new Random();
-			int r = 100 * rd.nextInt();
-			connection.setClientID("user"+r);
-		}
+			ConnectionFactory factory = (ConnectionFactory) ic.lookup("jms/RemoteConnectionFactory");
 
-		Session session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+			Topic topic = (Topic) ic.lookup("jms/topic/noticias");
+			Connection connection = factory.createConnection("user","qwerty123");
+			try {
+				connection.setClientID("user5");
+			} catch (InvalidClientIDException ice) {
+				Random rd = new Random();
+				int r = 100 * rd.nextInt();
+				connection.setClientID("user"+r);
+			}
 
-		MessageConsumer receiver = session.createDurableConsumer(topic, "user");
-		TextMessage msg = null;
-		connection.start();
-		while (true) {
-			Message m = receiver.receive(1000);
-			if (m != null) {
-				if (m instanceof TextMessage) {
-					msg = (TextMessage) m;
+			Session session = connection.createSession(false,Session.AUTO_ACKNOWLEDGE);
+
+			MessageConsumer receiver = session.createDurableConsumer(topic, "user");
+			TextMessage msg = null;
+			connection.start();
+			while (true) {
+				Message m = receiver.receive(1000);
+				if (m != null) {
+					if (m instanceof TextMessage) {
+						msg = (TextMessage) m;
+					} else {
+						break;
+					}
 				} else {
 					break;
 				}
-			} else {
-				break;
 			}
-		}
-		if (msg != null) {
-		String msg2XML = msg.getText();
-		Document file = loadXMLFromString(msg2XML);
+			if (msg != null) {
+				String msg2XML = msg.getText();
+				Document file = loadXMLFromString(msg2XML);
 
-		String s = XMLStats.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-		String[] temps = s.split("/");
-		String targetPath = "";
-		String rootPath = "";
-		for (int i = 0; i < temps.length-1; i++) {
-			rootPath += temps[i] + "/";
-		}
-		targetPath = rootPath;
-		
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		File newsXML = new File(targetPath+"newsoutput.xml");
-		Result output = new StreamResult(newsXML);
-		Source input = new DOMSource(file);
-		transformer.transform(input, output);
-		File newsOP = newsXML;
-		
-		XMLValid validator = new XMLValid();
-		validator.validateXML(newsOP);
-
-		DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
-				.newDocumentBuilder();
-
-		Document doc = dBuilder.parse(newsOP);
-
-		if (doc.hasChildNodes()) {
-
-			Map<String,Integer> resumo = printNote(doc.getChildNodes());
-			SimpleDateFormat df = new SimpleDateFormat("(dd/MM/yyyy @ HH:mm)");
-			String resumo2file = "\n\n----------------\n\n"+"Resumo das notícias: "+ df.format(new Date()) +"\n\n";
-			for (String str:resumo.keySet()) {
-				if (!str.equalsIgnoreCase("excluidas")) {
-					resumo2file += str.substring(0, 1).toUpperCase() + str.substring(1) + " - "+resumo.get(str) + " notícia(s)\n";
+				String s = XMLStats.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+				String[] temps = s.split("/");
+				String targetPath = "";
+				String rootPath = "";
+				for (int i = 0; i < temps.length-1; i++) {
+					rootPath += temps[i] + "/";
 				}
-			}
-			resumo2file += "\n\nNotícias excluídas (mais de 12 horas): "+resumo.get("excluidas");
-			try {
-				File statsFile = new File(targetPath+"stats.txt");
-				if (!statsFile.exists()) {
-					statsFile.createNewFile();
+				targetPath = rootPath;
+
+				Transformer transformer = TransformerFactory.newInstance().newTransformer();
+				File newsXML = new File(targetPath+"newsoutput.xml");
+				Result output = new StreamResult(newsXML);
+				Source input = new DOMSource(file);
+				transformer.transform(input, output);
+				File newsOP = newsXML;
+
+				XMLValid validator = new XMLValid();
+				validator.validateXML(newsOP);
+
+				DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
+						.newDocumentBuilder();
+
+				Document doc = dBuilder.parse(newsOP);
+
+				if (doc.hasChildNodes()) {
+
+					Map<String,Integer> resumo = printNote(doc.getChildNodes());
+					SimpleDateFormat df = new SimpleDateFormat("(dd/MM/yyyy @ HH:mm)");
+					String resumo2file = "\n\n----------------\n\n"+"Resumo das notícias: "+ df.format(new Date()) +"\n\n";
+					for (String str:resumo.keySet()) {
+						if (!str.equalsIgnoreCase("excluidas")) {
+							resumo2file += str.substring(0, 1).toUpperCase() + str.substring(1) + " - "+resumo.get(str) + " notícia(s)\n";
+						}
+					}
+					resumo2file += "\n\nNotícias excluídas (mais de 12 horas): "+resumo.get("excluidas");
+					try {
+						File statsFile = new File(targetPath+"stats.txt");
+						if (!statsFile.exists()) {
+							statsFile.createNewFile();
+						}
+
+						FileWriter fw = new FileWriter(statsFile, true);
+						BufferedWriter bw = new BufferedWriter(fw);
+						bw.write(resumo2file);
+						bw.close();
+						fw.close();
+					} catch (IOException ioe) {
+						ioe.printStackTrace();
+					}
 				}
 
-				FileWriter fw = new FileWriter(statsFile, true);
-				BufferedWriter bw = new BufferedWriter(fw);
-				bw.write(resumo2file);
-				bw.close();
-				fw.close();
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-			}
+				receiver.close();
+				session.close();
+				connection.close();
+
+				System.out.println("Message Received");
+			} else System.out.println("No messages to receive.");
+		} catch (CommunicationException ce) {
+			System.out.println("Server is DOWN!");
 		}
-
-		receiver.close();
-		session.close();
-		connection.close();
-
-		System.out.println("Message Received");
-		} else System.out.println("No messages to receive.");
 
 
 	}
