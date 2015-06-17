@@ -45,10 +45,10 @@ public class TopicSender {
 		String[] temps = s.split("/");
 		String targetPath = "";
 		String rootPath = "";
-		for (int i = 0; i < temps.length-2; i++) {
+		for (int i = 0; i < temps.length-1; i++) {
 			rootPath += temps[i] + "/";
 		}
-		targetPath = rootPath + "target/";
+		targetPath = rootPath;
 		try {
 			File f = new File(targetPath+"delayed.txt");
 			ConnectionFactory factory = (ConnectionFactory) ic.lookup("jms/RemoteConnectionFactory");

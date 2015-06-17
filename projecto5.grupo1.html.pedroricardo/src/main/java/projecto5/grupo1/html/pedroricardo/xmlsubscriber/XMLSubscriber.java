@@ -1,6 +1,7 @@
 package projecto5.grupo1.html.pedroricardo.xmlsubscriber;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -81,10 +82,10 @@ public class XMLSubscriber {
 		String[] temps = s.split("/");
 		String finalPath = "";
 		String rootPath = "";
-		for (int i = 0; i < temps.length-2; i++) {
+		for (int i = 0; i < temps.length-1; i++) {
 			rootPath += temps[i] + "/";
 		}
-		finalPath = rootPath + "target/";
+		finalPath = rootPath;
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
 		File newFile = new File(finalPath+"newsoutput.xml");
 		Result output = new StreamResult(newFile);
@@ -94,8 +95,7 @@ public class XMLSubscriber {
 		validator.validateXML(newFile);
 		
 		// HTML creation
-		String xslPath = rootPath+"src/main/resources/newspaper.xsl";
-		File xslFile = new File(xslPath);
+		InputStream xslFile = XMLSubscriber.class.getResourceAsStream("/newspaper.xsl");
 		TransformerFactory tf = TransformerFactory.newInstance();
 		Transformer tr = tf.newTransformer(new StreamSource(xslFile));
 		output = new StreamResult(new File(finalPath+"noticias.html"));

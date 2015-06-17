@@ -90,10 +90,10 @@ public class XMLStats {
 		String[] temps = s.split("/");
 		String targetPath = "";
 		String rootPath = "";
-		for (int i = 0; i < temps.length-2; i++) {
+		for (int i = 0; i < temps.length-1; i++) {
 			rootPath += temps[i] + "/";
 		}
-		targetPath = rootPath + "target/";
+		targetPath = rootPath;
 		
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
 		File newsXML = new File(targetPath+"newsoutput.xml");

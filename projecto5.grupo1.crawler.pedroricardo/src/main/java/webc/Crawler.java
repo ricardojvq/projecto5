@@ -67,10 +67,10 @@ public class Crawler {
 		String[] temps = s.split("/");
 		String targetPath = "";
 		String rootPath = "";
-		for (int i = 0; i < temps.length-2; i++) {
+		for (int i = 0; i < temps.length-1; i++) {
 			rootPath += temps[i] + "/";
 		}
-		targetPath = rootPath + "target/";
+		targetPath = rootPath;
 		File xmlFile = new File(targetPath+"news.xml");
 		try {
 			JAXBHandler.marshal(newsAgg.getNoticia(), xmlFile);
